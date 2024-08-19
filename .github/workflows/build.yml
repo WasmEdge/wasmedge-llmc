@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+env:
+  CARGO_TERM_COLOR: always
+  RUST_LOG: DEBUG
+  RUST_BACKTRACE: full
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SDK
+        run: |
+          rustup target add wasm32-wasi
+          cd example
+          cargo build --target wasm32-wasi --release
+      - name: Download data
+        run: |
+          wget -P /tmp/data/ https://huggingface.co/datasets/karpathy/llmc-starter-pack/resolve/main/gpt2_124M.bin
+          wget -P /tmp/data/ https://huggingface.co/datasets/karpathy/llmc-starter-pack/resolve/main/tiny_shakespeare_train.bin
+          wget -P /tmp/data/ https://huggingface.co/datasets/karpathy/llmc-starter-pack/resolve/main/tiny_shakespeare_val.bin
+          wget -P /tmp/data/ https://huggingface.co/datasets/karpathy/llmc-starter-pack/resolve/main/gpt2_tokenizer.bin
+      - name: Build WasmEdge
+        run: |
+          sudo apt update && sudo apt install software-properties-common llvm-14-dev liblld-14-dev
+          git clone https://github.com/WasmEdge/WasmEdge /tmp/WasmEdge
+          mkdir /tmp/build && cd /tmp/build
+          cmake /tmp/WasmEdge -DCMAKE_BUILD_TYPE=Release -DWASMEDGE_PLUGIN_LLM=ON -DWASMEDGE_BUILD_TESTS=OFF
+          make -j$(nproc) && sudo make install
+      - name: Train GPT2
+        run: |
+          WASMEDGE_PLUGIN_PATH=/usr/local/lib/wasmedge/ wasmedge --dir .:. ./target/wasm32-wasi/release/example.wasm
