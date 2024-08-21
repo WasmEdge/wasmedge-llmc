@@ -39,4 +39,4 @@ jobs:
           make -j$(nproc) && sudo make install
       - name: Train GPT2
         run: |
-          WASMEDGE_PLUGIN_PATH=/usr/local/lib/wasmedge/ wasmedge --dir .:. ./target/wasm32-wasi/release/example.wasm
+          WASMEDGE_PLUGIN_PATH=/usr/local/lib/wasmedge/ wasmedge --dir .:. ./example/target/wasm32-wasi/release/example.wasm
