@@ -2,11 +2,11 @@ use core::fmt;
 use std::error::Error;
 #[repr(transparent)]
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
-pub struct WasmedgeLLMErrno(u32);
-pub const WASMEDGE_LLM_ERRNO_SUCCESS: WasmedgeLLMErrno = WasmedgeLLMErrno(0);
-pub const WASMEDGE_LLM_ERRNO_INVALID_ARGUMENT: WasmedgeLLMErrno = WasmedgeLLMErrno(1);
-pub const WASMEDGE_LLM_ERRNO_MISSING_MEMORY: WasmedgeLLMErrno = WasmedgeLLMErrno(2);
-impl WasmedgeLLMErrno {
+pub struct WasmedgeLLMCErrno(u32);
+pub const WASMEDGE_LLM_ERRNO_SUCCESS: WasmedgeLLMCErrno = WasmedgeLLMCErrno(0);
+pub const WASMEDGE_LLM_ERRNO_INVALID_ARGUMENT: WasmedgeLLMCErrno = WasmedgeLLMCErrno(1);
+pub const WASMEDGE_LLM_ERRNO_MISSING_MEMORY: WasmedgeLLMCErrno = WasmedgeLLMCErrno(2);
+impl WasmedgeLLMCErrno {
     pub const fn raw(&self) -> u32 {
         self.0
     }
@@ -31,38 +31,38 @@ impl WasmedgeLLMErrno {
         }
     }
 }
-impl fmt::Debug for WasmedgeLLMErrno {
+impl fmt::Debug for WasmedgeLLMCErrno {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("WasmedgeLLMErrno")
+        f.debug_struct("WasmedgeLLMCErrno")
             .field("code", &self.0)
             .field("name", &self.name())
             .field("message", &self.message())
             .finish()
     }
 }
-impl fmt::Display for WasmedgeLLMErrno {
+impl fmt::Display for WasmedgeLLMCErrno {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} (error {})", self.name(), self.0)
     }
 }
 
-impl Error for WasmedgeLLMErrno {}
+impl Error for WasmedgeLLMCErrno {}
 
 #[cfg(feature = "std")]
 extern crate std;
 #[cfg(feature = "std")]
-impl std::error::Error for WasmedgeLLMErrno {}
+impl std::error::Error for WasmedgeLLMCErrno {}
 
 pub unsafe fn model_create(
     checkpoint_path: &str,
     model_id: *mut u32,
-) -> Result<(), WasmedgeLLMErrno> {
+) -> Result<(), WasmedgeLLMCErrno> {
     let checkpoint_path_ptr = checkpoint_path.as_ptr() as u32;
     let checkpoint_path_len = checkpoint_path.len() as u32;
     let model_id_ptr = model_id as u32;
     let result = wasmedge_llm::model_create(checkpoint_path_ptr, checkpoint_path_len, model_id_ptr);
     if result != 0 {
-        Err(WasmedgeLLMErrno(result as u32))
+        Err(WasmedgeLLMCErrno(result as u32))
     } else {
         Ok(())
     }
@@ -76,7 +76,7 @@ pub unsafe fn dataloader_create(
     num_processes: u32,
     should_shuffule: bool,
     dataloader_id: *mut u32,
-) -> Result<(), WasmedgeLLMErrno> {
+) -> Result<(), WasmedgeLLMCErrno> {
     let data_path_str = data_path.as_ptr() as u32;
     let data_path_len = data_path.len() as u32;
     let dataloader_id_ptr = dataloader_id as u32;
@@ -91,7 +91,7 @@ pub unsafe fn dataloader_create(
         dataloader_id_ptr,
     );
     if result != 0 {
-        Err(WasmedgeLLMErrno(result as u32))
+        Err(WasmedgeLLMCErrno(result as u32))
     } else {
         Ok(())
     }
@@ -100,13 +100,13 @@ pub unsafe fn dataloader_create(
 pub unsafe fn tokenizer_create(
     filepath: &str,
     tokenizer_id: *mut u32,
-) -> Result<(), WasmedgeLLMErrno> {
+) -> Result<(), WasmedgeLLMCErrno> {
     let filepath_ptr = filepath.as_ptr() as u32;
     let filepath_len = filepath.len() as u32;
     let tokenizer_id_ptr = tokenizer_id as u32;
     let result = wasmedge_llm::tokenizer_create(filepath_ptr, filepath_len, tokenizer_id_ptr);
     if result != 0 {
-        Err(WasmedgeLLMErrno(result as u32))
+        Err(WasmedgeLLMCErrno(result as u32))
     } else {
         Ok(())
     }
@@ -121,7 +121,7 @@ pub unsafe fn model_train(
     sequence_length: u32,
     lr: f32,
     epoch: u32,
-) -> Result<(), WasmedgeLLMErrno> {
+) -> Result<(), WasmedgeLLMCErrno> {
     let result = wasmedge_llm::model_train(
         model_id,
         train_dataloader_id,
@@ -134,14 +134,14 @@ pub unsafe fn model_train(
     );
 
     if result != 0 {
-        Err(WasmedgeLLMErrno(result as u32))
+        Err(WasmedgeLLMCErrno(result as u32))
     } else {
         Ok(())
     }
 }
 
 pub mod wasmedge_llm {
-    #[link(wasm_import_module = "wasi_llm")]
+    #[link(wasm_import_module = "wasmedge_llmc")]
     extern "C" {
         pub fn model_create(
             checkpoint_path_ptr: u32,

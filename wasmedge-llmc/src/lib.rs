@@ -45,7 +45,7 @@ impl ConfigBuilder {
 }
 
 impl Model {
-    pub fn from_checkpoints(checkpoint_path: &str) -> Result<Self, WasmedgeLLMErrno> {
+    pub fn from_checkpoints(checkpoint_path: &str) -> Result<Self, WasmedgeLLMCErrno> {
         let mut model_id = MaybeUninit::<u32>::uninit();
         unsafe {
             let result = model_create(checkpoint_path, model_id.as_mut_ptr());
@@ -64,7 +64,7 @@ impl Model {
         val_data_loader: DataLoader,
         tokenizer: Tokenizer,
         config: Config,
-    ) -> Result<(), WasmedgeLLMErrno> {
+    ) -> Result<(), WasmedgeLLMCErrno> {
         unsafe {
             model_train(
                 self.id,
@@ -94,7 +94,7 @@ impl DataLoader {
         process_rank: u32,
         num_processes: u32,
         should_shuffle: bool,
-    ) -> Result<Self, WasmedgeLLMErrno> {
+    ) -> Result<Self, WasmedgeLLMCErrno> {
         let mut dataloader_id = MaybeUninit::<u32>::uninit();
         unsafe {
             let result = dataloader_create(
@@ -123,7 +123,7 @@ pub struct Tokenizer {
 }
 
 impl Tokenizer {
-    pub fn from_file(filepath: &str) -> Result<Self, WasmedgeLLMErrno> {
+    pub fn from_file(filepath: &str) -> Result<Self, WasmedgeLLMCErrno> {
         let mut tokenizer_id = MaybeUninit::<u32>::uninit();
         unsafe {
             let result = tokenizer_create(filepath, tokenizer_id.as_mut_ptr());
