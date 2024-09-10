@@ -32,10 +32,10 @@ jobs:
           wget -P /tmp/data/ https://huggingface.co/datasets/karpathy/llmc-starter-pack/resolve/main/gpt2_tokenizer.bin
       - name: Build WasmEdge
         run: |
-          sudo apt update && sudo apt install software-properties-common llvm-14-dev liblld-14-dev
+          sudo apt update && sudo apt install software-properties-common
           git clone https://github.com/WasmEdge/WasmEdge /tmp/WasmEdge
           mkdir /tmp/build && cd /tmp/build
-          cmake /tmp/WasmEdge -DCMAKE_BUILD_TYPE=Release -DWASMEDGE_PLUGIN_LLM=ON -DWASMEDGE_BUILD_TESTS=OFF
+          cmake /tmp/WasmEdge -DCMAKE_BUILD_TYPE=Release -DWASMEDGE_USE_LLVM=OFF -DWASMEDGE_PLUGIN_LLM=ON -DWASMEDGE_BUILD_TESTS=OFF
           make -j$(nproc) && sudo make install
       - name: Train GPT2
         run: |
